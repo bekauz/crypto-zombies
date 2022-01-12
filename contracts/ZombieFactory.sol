@@ -23,7 +23,7 @@ contract ZombieFactory {
         emit NewZombie(zombies.length - 1, _name, _dna);    
     }
 
-    function _generateRandomDna(string memory _str) private view returns (uint) {
+    function _generateRandomDna(string memory _str) public view returns (uint) {
         uint rand = uint(keccak256(abi.encodePacked(_str)));
         return rand % dnaModulus;
     }
@@ -31,5 +31,9 @@ contract ZombieFactory {
     function createRandomZombie(string memory _name) public {
         uint randDna = _generateRandomDna(_name);
         _createZombie(_name, randDna);
-    } 
+    }
+
+    function getZombies() public view returns (Zombie[] memory) {
+        return zombies;
+    }
 }
