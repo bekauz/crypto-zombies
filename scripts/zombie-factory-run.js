@@ -6,8 +6,8 @@ async function main() {
   
   console.log("Deploying ZombieFactory...");
   const zombieFactory = await zombieFactoryFactory.deploy();
-
   await zombieFactory.deployed();
+
   console.log("ZombieFactory deployed to:", zombieFactory.address);
 
   let zombies = await zombieFactory.getZombies();
@@ -15,6 +15,13 @@ async function main() {
 
   console.log("Creating a zombie...");
   await zombieFactory.createRandomZombie("name");
+
+  try {
+    console.log("Attempting to create another zombie...");
+    await zombieFactory.createRandomZombie("should not work");
+  } catch (e) {
+    console.log("Failed to create... successfully");
+  }
 
   zombies = await zombieFactory.getZombies();
   console.log("Current number of zombies: ", zombies.length);
