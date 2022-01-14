@@ -21,9 +21,9 @@ abstract contract KittyInterface {
 
 
 contract ZombieFeeding is ZombieFactory {
-
-    address ckAddress = 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d;
-    KittyInterface kittyContract = KittyInterface(ckAddress);
+    // enable for mainnet
+    // address ckAddress = 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d;
+    // KittyInterface kittyContract = KittyInterface(ckAddress);
 
     function feedAndMultiply(uint _zombieId, uint _targetDna) public {
         require(msg.sender == zombieToOwner[_zombieId]);
@@ -34,8 +34,10 @@ contract ZombieFeeding is ZombieFactory {
     }
 
     function feedOnKitty(uint _zombieId, uint _kittyId) public {
-        uint kittyDna;
-        (,,,,,,,,,kittyDna) = kittyContract.getKitty(_kittyId);
+        // enable for mainnet
+        // uint kittyDna;
+        // (,,,,,,,,,kittyDna) = kittyContract.getKitty(_kittyId);
+        uint kittyDna = _generateRandomDna("temp");
         feedAndMultiply(_zombieId, kittyDna);
     }
 }
