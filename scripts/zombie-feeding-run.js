@@ -22,9 +22,12 @@ async function main() {
   console.log("Creating a zombie...");
   await zombieFeeding.createRandomZombie("first");
   
-  console.log("Feeding on a cat...");
-  await zombieFeeding.feedOnKitty(0, 1);
-
+  try {
+    console.log("Trying to feed on a cat while on cooldown...");
+    await zombieFeeding.feedOnKitty(0, 1);
+  } catch (e) {
+    console.log(e);
+  }
   let zombies = await zombieFeeding.getZombies();
   console.log(`There are now ${zombies.length} zombies`);
 }
