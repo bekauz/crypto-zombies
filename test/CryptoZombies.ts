@@ -15,20 +15,69 @@ describe("CryptoZombies contracts", function () {
 
   });
 
-  it("Should allow one signer to create one zombie", async function () {
+  describe("ZombieFactory contract", function () {
 
-    const zombieFactoryFactory: ContractFactory = await ethers.getContractFactory("ZombieFactory");
-    const zombieFactory: Contract = await zombieFactoryFactory.deploy();
+    it("Should allow one signer to create one zombie", async function () {
 
-    await zombieFactory.deployed();
-    // no zombies after deployment
-    expect(await zombieFactory.getZombies()).to.eql([]);
+      const zombieFactoryFactory: ContractFactory = await ethers.getContractFactory("ZombieFactory");
+      const zombieFactory: Contract = await zombieFactoryFactory.deploy();
 
-    await zombieFactory.createRandomZombie("test-1");
-    expect((await zombieFactory.getZombies()).length).to.equal(1);
+      await zombieFactory.deployed();
+      // no zombies after deployment
+      expect(await zombieFactory.getZombies()).to.eql([]);
 
-    // should only allow creation of 1
-    await expect(zombieFactory.createRandomZombie("test-2"))
-      .to.be.revertedWith("msg.sender already owns a zombie");
+      await zombieFactory.createRandomZombie("test-1");
+      expect((await zombieFactory.getZombies()).length).to.equal(1);
+
+      // should only allow creation of 1
+      await expect(zombieFactory.createRandomZombie("test-2"))
+        .to.be.revertedWith("msg.sender already owns a zombie");
+
+      expect((await zombieFactory.getZombies()).length).to.equal(1);
+    });
   });
+
+  describe("ZombieFeeding contract", function () {
+
+    it("Should allow the owner to set the contract address", async function () {
+
+      const zombieFeedingFactory: ContractFactory = await ethers.getContractFactory("ZombieFeeding");
+      const zombieFeeding: Contract = await zombieFeedingFactory.deploy();
+      await zombieFeeding.deployed();
+
+      await zombieFeeding.setKittyContractAddress(
+        ethers.utils.getAddress('0x06012c8cf97BEaD5deAe237070F9587f8E7A266d')
+      );
+
+      await expect(zombieFeeding.connect(addr2).setKittyContractAddress(
+        ethers.utils.getAddress('0x06012c8cf97BEaD5deAe237070F9587f8E7A266d')
+      )).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("Should set the external contract address and successfully call it", async function () {
+
+      const zombieFeedingFactory: ContractFactory = await ethers.getContractFactory("ZombieFeeding");
+      const zombieFeeding: Contract = await zombieFeedingFactory.deploy();
+      await zombieFeeding.deployed();
+
+      await zombieFeeding.setKittyContractAddress(
+        ethers.utils.getAddress('0x06012c8cf97BEaD5deAe237070F9587f8E7A266d')
+      );
+
+      await zombieFeeding.createRandomZombie("test-1");
+      expect((await zombieFeeding.getZombies()).length).to.equal(1);
+      await expect(zombieFeeding.feedOnKitty(0, 1)).to.be.revertedWith('Zombie still on cooldown');
+
+      const now = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
+      const time = now + 86400
+      // inc next block timestamp inc by 86400, mine it
+      await ethers.provider.send('evm_setNextBlockTimestamp', [time]);
+      await ethers.provider.send('evm_mine', []);
+
+      await zombieFeeding.feedOnKitty(0, 1);
+      expect((await zombieFeeding.getZombies()).length).to.equal(2);
+
+    });
+  });
+
 });
