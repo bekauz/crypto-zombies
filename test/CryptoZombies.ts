@@ -39,11 +39,16 @@ describe("CryptoZombies contracts", function () {
 
   describe("ZombieFeeding contract", function () {
 
-    it("Should allow the owner to set the contract address", async function () {
+    let zombieFeedingFactory: ContractFactory;
+    let zombieFeeding: Contract;
 
-      const zombieFeedingFactory: ContractFactory = await ethers.getContractFactory("ZombieFeeding");
-      const zombieFeeding: Contract = await zombieFeedingFactory.deploy();
+    this.beforeEach(async () => {
+      zombieFeedingFactory = await ethers.getContractFactory("ZombieFeeding");
+      zombieFeeding = await zombieFeedingFactory.deploy();
       await zombieFeeding.deployed();
+    });
+
+    it("Should allow the owner to set the contract address", async function () {
 
       await zombieFeeding.setKittyContractAddress(
         ethers.utils.getAddress('0x06012c8cf97BEaD5deAe237070F9587f8E7A266d')
@@ -54,11 +59,17 @@ describe("CryptoZombies contracts", function () {
       )).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
-    it("Should set the external contract address and successfully call it", async function () {
+    it("Should fail to feedAndMultiply if cooldown is active", async function () {
+      await zombieFeeding.setKittyContractAddress(
+        ethers.utils.getAddress('0x06012c8cf97BEaD5deAe237070F9587f8E7A266d')
+      );
 
-      const zombieFeedingFactory: ContractFactory = await ethers.getContractFactory("ZombieFeeding");
-      const zombieFeeding: Contract = await zombieFeedingFactory.deploy();
-      await zombieFeeding.deployed();
+      await zombieFeeding.createRandomZombie("test-1");
+      expect((await zombieFeeding.getZombies()).length).to.equal(1);
+      await expect(zombieFeeding.feedOnKitty(0, 1)).to.be.revertedWith("Zombie still on cooldown");
+    });
+
+    it("Should successfully feedOnMultiply when reading from another contract", async function () {
 
       await zombieFeeding.setKittyContractAddress(
         ethers.utils.getAddress('0x06012c8cf97BEaD5deAe237070F9587f8E7A266d')
@@ -66,7 +77,6 @@ describe("CryptoZombies contracts", function () {
 
       await zombieFeeding.createRandomZombie("test-1");
       expect((await zombieFeeding.getZombies()).length).to.equal(1);
-      await expect(zombieFeeding.feedOnKitty(0, 1)).to.be.revertedWith('Zombie still on cooldown');
 
       const now = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
       const time = now + 86400
@@ -76,8 +86,45 @@ describe("CryptoZombies contracts", function () {
 
       await zombieFeeding.feedOnKitty(0, 1);
       expect((await zombieFeeding.getZombies()).length).to.equal(2);
-
     });
+  });
+
+  describe("ZombieFeeding contract", function () {
+
+    let zombieHelperFactory: ContractFactory;
+    let zombieHelper: Contract;
+
+    this.beforeEach(async () => {
+      zombieHelperFactory = await ethers.getContractFactory("ZombieHelper");
+      zombieHelper = await zombieHelperFactory.deploy();
+      await zombieHelper.deployed();
+    });
+
+
+  });
+
+  describe("ZombieAttack contract", function () {
+
+    let zombieAttackFactory: ContractFactory;
+    let zombieAttack: Contract;
+    let zombieFeedingFactory: ContractFactory;
+    let zombieFeeding: Contract;
+
+    this.beforeEach(async () => {
+      zombieAttackFactory = await ethers.getContractFactory("ZombieAttack");
+      zombieAttack = await zombieAttackFactory.deploy();
+      await zombieAttack.deployed();
+      zombieFeedingFactory = await ethers.getContractFactory("ZombieFeeding");
+      zombieFeeding = await zombieFeedingFactory.deploy();
+      await zombieFeeding.deployed();
+    });
+
+    it("Should fail to attack if msg.sender is not the owner", async function () {
+      await zombieFeeding.connect(owner).createRandomZombie("test-1");
+      await expect(zombieAttack.connect(addr1).attack(0, 0))
+        .to.be.revertedWith("msg.sender is not the owner of zombie");
+    });
+
   });
 
 });
