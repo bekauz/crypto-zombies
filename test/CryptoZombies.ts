@@ -48,6 +48,7 @@ describe("CryptoZombies contracts", function () {
       await zombieFeeding.deployed();
     });
 
+
     it("Should allow the owner to set the contract address", async function () {
 
       await zombieFeeding.setKittyContractAddress(
@@ -107,24 +108,39 @@ describe("CryptoZombies contracts", function () {
 
     let zombieAttackFactory: ContractFactory;
     let zombieAttack: Contract;
-    let zombieFeedingFactory: ContractFactory;
-    let zombieFeeding: Contract;
 
     this.beforeEach(async () => {
       zombieAttackFactory = await ethers.getContractFactory("ZombieAttack");
       zombieAttack = await zombieAttackFactory.deploy();
       await zombieAttack.deployed();
-      zombieFeedingFactory = await ethers.getContractFactory("ZombieFeeding");
-      zombieFeeding = await zombieFeedingFactory.deploy();
-      await zombieFeeding.deployed();
     });
 
     it("Should fail to attack if msg.sender is not the owner", async function () {
-      await zombieFeeding.connect(owner).createRandomZombie("test-1");
+      await zombieAttack.connect(owner).createRandomZombie("test-1");
       await expect(zombieAttack.connect(addr1).attack(0, 0))
         .to.be.revertedWith("msg.sender is not the owner of zombie");
     });
 
+    it("Should attack and level up on victory", async function () {
+      await zombieAttack.createRandomZombie("test-1");
+      await zombieAttack.connect(addr1).createRandomZombie("test-2");
+
+      let zombies = await zombieAttack.getZombies();
+      expect(zombies[0].level).to.deep.equal(1);
+      expect(zombies[1].level).to.deep.equal(1);
+
+      const now = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
+      const time = now + 86400
+      // inc next block timestamp inc by 86400, mine it
+      await ethers.provider.send('evm_setNextBlockTimestamp', [time]);
+      await ethers.provider.send('evm_mine', []);
+
+      await zombieAttack.connect(addr1).attack(1, 0);
+      zombies = await zombieAttack.getZombies();
+
+      expect([zombies[0].level, zombies[1].level]).to.include(2);
+
+    });
   });
 
 });
