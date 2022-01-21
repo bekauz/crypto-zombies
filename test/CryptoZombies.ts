@@ -139,7 +139,6 @@ describe("CryptoZombies contracts", function () {
       zombies = await zombieAttack.getZombies();
 
       expect([zombies[0].level, zombies[1].level]).to.include(2);
-
     });
   });
 
