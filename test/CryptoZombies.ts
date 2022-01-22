@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { assert, expect } from "chai";
 import { ethers } from "hardhat";
 import { Contract, ContractFactory } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -139,6 +139,41 @@ describe("CryptoZombies contracts", function () {
       zombies = await zombieAttack.getZombies();
 
       expect([zombies[0].level, zombies[1].level]).to.include(2);
+    });
+  });
+
+  describe("ZombieOwnership contract", function () {
+
+    let zombieOwnershipFactory: ContractFactory;
+    let zombieOwnership: Contract;
+
+    this.beforeEach(async () => {
+      zombieOwnershipFactory = await ethers.getContractFactory("ZombieOwnership");
+      zombieOwnership = await zombieOwnershipFactory.deploy();
+      await zombieOwnership.deployed();
+    });
+
+    it("Should return balance for owner address", async function () {
+      assert.fail("TODO");
+    });
+
+    it("Should return owner of tokenId", async function () {
+      assert.fail("TODO");
+
+    });
+
+    it("Should successfully transfer token to another owner", async function () {
+      assert.fail("TODO");
+    });
+
+
+    it("Should approve another address", async function () {
+      assert.fail("TODO");
+    });
+
+
+    it("Should approve another address and allow that address to take the token", async function () {
+      assert.fail("TODO");
     });
   });
 
