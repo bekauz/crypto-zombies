@@ -154,23 +154,41 @@ describe("CryptoZombies contracts", function () {
     });
 
     it("Should return balance for owner address", async function () {
-      assert.fail("TODO");
+      expect(await zombieOwnership.balanceOf(owner.getAddress()))
+      .to.equal(ethers.BigNumber.from(0));
+      await zombieOwnership.connect(owner).createRandomZombie("test-1");
+      expect(await zombieOwnership.balanceOf(owner.getAddress()))
+        .to.equal(ethers.BigNumber.from(1));
     });
 
     it("Should return owner of tokenId", async function () {
-      assert.fail("TODO");
-
+      expect(await zombieOwnership.ownerOf(0)).to.equal('0x0000000000000000000000000000000000000000');
+      await zombieOwnership.connect(owner).createRandomZombie("test-1");
+      expect(await zombieOwnership.ownerOf(0)).to.equal(await owner.getAddress());
     });
 
     it("Should successfully transfer token to another owner", async function () {
-      assert.fail("TODO");
+      await zombieOwnership.connect(owner).createRandomZombie("test-1");
+      await zombieOwnership.transferFrom(await owner.getAddress(), await addr1.getAddress(), 0);
+      expect(await zombieOwnership.ownerOf(0)).to.equal(await addr1.getAddress());
+      expect(await zombieOwnership.balanceOf(await owner.getAddress()))
+        .to.equal(ethers.BigNumber.from(0));
+      expect(await zombieOwnership.balanceOf(await addr1.getAddress()))
+        .to.equal(ethers.BigNumber.from(1));
+
     });
 
 
-    it("Should approve another address", async function () {
-      assert.fail("TODO");
+    it("Should approve another address and emit Approval event", async function () {
+      await zombieOwnership.connect(owner).createRandomZombie("test-1");
+      await expect(zombieOwnership.approve(addr1.getAddress(), 0))
+        .to.emit(zombieOwnership, "Approval")
+        .withArgs(await owner.getAddress(), await addr1.getAddress(), 0);
     });
 
+    it("Should not allow unapproved address to take the token", async function () {
+      assert.fail("TODO");
+    });
 
     it("Should approve another address and allow that address to take the token", async function () {
       assert.fail("TODO");
