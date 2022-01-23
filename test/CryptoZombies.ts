@@ -1,4 +1,4 @@
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Contract, ContractFactory } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -138,7 +138,7 @@ describe("CryptoZombies contracts", function () {
       await zombieAttack.connect(addr1).attack(1, 0);
       zombies = await zombieAttack.getZombies();
 
-      expect([zombies[0].level, zombies[1].level]).to.include(2);
+       expect([zombies[0].level, zombies[1].level]).to.include(2);
     });
   });
 
@@ -178,7 +178,6 @@ describe("CryptoZombies contracts", function () {
 
     });
 
-
     it("Should approve another address and emit Approval event", async function () {
       await zombieOwnership.connect(owner).createRandomZombie("test-1");
       await expect(zombieOwnership.approve(addr1.getAddress(), 0))
@@ -187,11 +186,20 @@ describe("CryptoZombies contracts", function () {
     });
 
     it("Should not allow unapproved address to take the token", async function () {
-      assert.fail("TODO");
+      await zombieOwnership.connect(owner).createRandomZombie("test-1");
+      expect(await zombieOwnership.ownerOf(0)).to.be.equal(await owner.getAddress());
+      await expect(zombieOwnership.connect(addr1).transferFrom(owner.getAddress(), addr1.getAddress(), 0))
+        .to.be.revertedWith("Unauthorized to transfer the token.");
     });
 
     it("Should approve another address and allow that address to take the token", async function () {
-      assert.fail("TODO");
+      await zombieOwnership.connect(owner).createRandomZombie("test-1");
+      await zombieOwnership.connect(owner).approve(addr1.getAddress(), 0);
+      await zombieOwnership.transferFrom(owner.getAddress(), addr1.getAddress(), 0);
+
+      expect(await zombieOwnership.balanceOf(owner.getAddress())).to.equal(ethers.BigNumber.from(0));
+      expect(await zombieOwnership.balanceOf(addr1.getAddress())).to.equal(ethers.BigNumber.from(1));
+      expect(await zombieOwnership.ownerOf(0)).to.equal(await addr1.getAddress());
     });
   });
 
