@@ -79,8 +79,8 @@ describe("CryptoZombies contracts", function () {
       await zombieFeeding.createRandomZombie("test-1");
       expect((await zombieFeeding.getZombies()).length).to.equal(1);
 
-      const now = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
-      const time = now + 86400
+      const now: number = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
+      const time: number = now + 86400
       // inc next block timestamp inc by 86400, mine it
       await ethers.provider.send('evm_setNextBlockTimestamp', [time]);
       await ethers.provider.send('evm_mine', []);
@@ -129,8 +129,8 @@ describe("CryptoZombies contracts", function () {
       expect(zombies[0].level).to.deep.equal(1);
       expect(zombies[1].level).to.deep.equal(1);
 
-      const now = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
-      const time = now + 86400
+      const now: number = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
+      const time: number = now + 86400
       // inc next block timestamp inc by 86400, mine it
       await ethers.provider.send('evm_setNextBlockTimestamp', [time]);
       await ethers.provider.send('evm_mine', []);
